@@ -19,7 +19,7 @@ export interface WorkerJob {
 
 interface WorkerEndpoint { baseUrl: string; token: string; workerId?: string }
 
-async function resolveEndpoint(userId?: string): Promise<WorkerEndpoint> {
+async function resolveEndpoint(userId?: string, allowSharedWorker = false): Promise<WorkerEndpoint> {
   if (userId) {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
@@ -37,10 +37,13 @@ async function resolveEndpoint(userId?: string): Promise<WorkerEndpoint> {
         workerId: data.id,
       };
     }
+    if (!allowSharedWorker) {
+      throw new Error("no_paired_worker: Pair a worker on your computer before recording. Run `npx @ishaan_gpt/smoothrecord-worker pair` and confirm at /app.");
+    }
   }
   const base = process.env.WORKER_BASE_URL;
   const token = process.env.WORKER_TOKEN;
-  if (!base || !token) throw new Error("No worker paired. Install one in the Workers tab.");
+  if (!base || !token) throw new Error("no_paired_worker: Pair a worker on your computer before recording.");
   return { baseUrl: base.replace(/\/$/, ""), token };
 }
 
