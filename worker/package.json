@@ -1,0 +1,21 @@
+{
+  "name": "smoothrecord-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "postinstall": "playwright install --with-deps chromium"
+  },
+  "dependencies": {
+    "fastify": "^5.1.0",
+    "playwright": "^1.49.0",
+    "fluent-ffmpeg": "^2.1.3",
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@ffprobe-installer/ffprobe": "^2.1.2",
+    "unzipper": "^0.12.3",
+    "zod": "^3.23.8",
+    "nanoid": "^5.0.9"
+  }
+}
