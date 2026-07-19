@@ -11,9 +11,15 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PlaygroundRouteImport } from './routes/playground'
 import { Route as DocsRouteImport } from './routes/docs'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as ApiPublicRecordRouteImport } from './routes/api/public/record'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as ApiPublicV1RecordRouteImport } from './routes/api/public/v1/record'
 import { Route as ApiPublicRecordIdRouteImport } from './routes/api/public/record.$id'
+import { Route as ApiPublicV1RecordIdRouteImport } from './routes/api/public/v1/record.$id'
 
 const PlaygroundRoute = PlaygroundRouteImport.update({
   id: '/playground',
@@ -25,14 +31,38 @@ const DocsRoute = DocsRouteImport.update({
   path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiPublicRecordRoute = ApiPublicRecordRouteImport.update({
   id: '/api/public/record',
   path: '/api/public/record',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1RecordRoute = ApiPublicV1RecordRouteImport.update({
+  id: '/api/public/v1/record',
+  path: '/api/public/v1/record',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicRecordIdRoute = ApiPublicRecordIdRouteImport.update({
@@ -40,58 +70,99 @@ const ApiPublicRecordIdRoute = ApiPublicRecordIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiPublicRecordRoute,
 } as any)
+const ApiPublicV1RecordIdRoute = ApiPublicV1RecordIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiPublicV1RecordRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/docs': typeof DocsRoute
   '/playground': typeof PlaygroundRoute
+  '/app': typeof AuthenticatedAppRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/api/public/record': typeof ApiPublicRecordRouteWithChildren
   '/api/public/record/$id': typeof ApiPublicRecordIdRoute
+  '/api/public/v1/record': typeof ApiPublicV1RecordRouteWithChildren
+  '/api/public/v1/record/$id': typeof ApiPublicV1RecordIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/docs': typeof DocsRoute
   '/playground': typeof PlaygroundRoute
+  '/app': typeof AuthenticatedAppRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/api/public/record': typeof ApiPublicRecordRouteWithChildren
   '/api/public/record/$id': typeof ApiPublicRecordIdRoute
+  '/api/public/v1/record': typeof ApiPublicV1RecordRouteWithChildren
+  '/api/public/v1/record/$id': typeof ApiPublicV1RecordIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/docs': typeof DocsRoute
   '/playground': typeof PlaygroundRoute
+  '/_authenticated/app': typeof AuthenticatedAppRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/api/public/record': typeof ApiPublicRecordRouteWithChildren
   '/api/public/record/$id': typeof ApiPublicRecordIdRoute
+  '/api/public/v1/record': typeof ApiPublicV1RecordRouteWithChildren
+  '/api/public/v1/record/$id': typeof ApiPublicV1RecordIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/docs'
     | '/playground'
+    | '/app'
+    | '/.lovable/oauth/consent'
     | '/api/public/record'
     | '/api/public/record/$id'
+    | '/api/public/v1/record'
+    | '/api/public/v1/record/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/docs'
     | '/playground'
+    | '/app'
+    | '/.lovable/oauth/consent'
     | '/api/public/record'
     | '/api/public/record/$id'
+    | '/api/public/v1/record'
+    | '/api/public/v1/record/$id'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
+    | '/auth'
     | '/docs'
     | '/playground'
+    | '/_authenticated/app'
+    | '/.lovable/oauth/consent'
     | '/api/public/record'
     | '/api/public/record/$id'
+    | '/api/public/v1/record'
+    | '/api/public/v1/record/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   DocsRoute: typeof DocsRoute
   PlaygroundRoute: typeof PlaygroundRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   ApiPublicRecordRoute: typeof ApiPublicRecordRouteWithChildren
+  ApiPublicV1RecordRoute: typeof ApiPublicV1RecordRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -110,6 +181,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -117,11 +202,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/record': {
       id: '/api/public/record'
       path: '/api/public/record'
       fullPath: '/api/public/record'
       preLoaderRoute: typeof ApiPublicRecordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/record': {
+      id: '/api/public/v1/record'
+      path: '/api/public/v1/record'
+      fullPath: '/api/public/v1/record'
+      preLoaderRoute: typeof ApiPublicV1RecordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/record/$id': {
@@ -131,8 +237,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicRecordIdRouteImport
       parentRoute: typeof ApiPublicRecordRoute
     }
+    '/api/public/v1/record/$id': {
+      id: '/api/public/v1/record/$id'
+      path: '/$id'
+      fullPath: '/api/public/v1/record/$id'
+      preLoaderRoute: typeof ApiPublicV1RecordIdRouteImport
+      parentRoute: typeof ApiPublicV1RecordRoute
+    }
   }
 }
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppRoute: typeof AuthenticatedAppRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppRoute: AuthenticatedAppRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface ApiPublicRecordRouteChildren {
   ApiPublicRecordIdRoute: typeof ApiPublicRecordIdRoute
@@ -146,11 +270,26 @@ const ApiPublicRecordRouteWithChildren = ApiPublicRecordRoute._addFileChildren(
   ApiPublicRecordRouteChildren,
 )
 
+interface ApiPublicV1RecordRouteChildren {
+  ApiPublicV1RecordIdRoute: typeof ApiPublicV1RecordIdRoute
+}
+
+const ApiPublicV1RecordRouteChildren: ApiPublicV1RecordRouteChildren = {
+  ApiPublicV1RecordIdRoute: ApiPublicV1RecordIdRoute,
+}
+
+const ApiPublicV1RecordRouteWithChildren =
+  ApiPublicV1RecordRoute._addFileChildren(ApiPublicV1RecordRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   DocsRoute: DocsRoute,
   PlaygroundRoute: PlaygroundRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   ApiPublicRecordRoute: ApiPublicRecordRouteWithChildren,
+  ApiPublicV1RecordRoute: ApiPublicV1RecordRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
