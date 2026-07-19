@@ -78,7 +78,7 @@ if ($NpmPkg -ne "") {
 } elseif ($TarUrl -ne "") {
     New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
     Set-Location $InstallDir
-    if (-not (Test-Path "worker\package.json")) {
+    if (-not (Test-Path "worker/package.json")) {
         Write-Host "Downloading worker source..." -ForegroundColor Yellow
         $tar = Join-Path $InstallDir "worker.tar.gz"
         Invoke-WebRequest -Uri $TarUrl -OutFile $tar
@@ -91,7 +91,7 @@ if ($NpmPkg -ne "") {
     Write-Host ""; Write-Host "Ready. Starting pairing..." -ForegroundColor Green; Write-Host ""
     node src/pair.js
 } else {
-    Write-Error "This app is not fully configured yet — no worker source URL set. Contact the app owner."
+    Write-Error "This app is not fully configured yet - no worker source URL set. Contact the app owner."
     exit 1
 }
 `;
