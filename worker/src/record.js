@@ -43,12 +43,12 @@ export async function runJob({ id, outDir, input, options }) {
 
     const page = await context.newPage();
 
-    await page.goto(targetUrl, { waitUntil: "networkidle", timeout: 60_000 });
+    await page.goto(targetUrl, { waitUntil: opts.waitUntil, timeout: 45_000 });
 
     // Wait for fonts + a settle beat.
     await page.evaluate(async () => {
       try { await document.fonts.ready; } catch {}
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, 400));
     });
 
     if (opts.waitForSelector) {
@@ -122,10 +122,15 @@ export async function runJob({ id, outDir, input, options }) {
 }
 
 function withPreset(o) {
-  const preset = o.preset || "editorial";
-  const base = { width: 1440, height: 900, deviceScaleFactor: 2, fps: 60, maxDurationSec: 30, easing: "cubic-bezier(.22,.61,.36,1)" };
+  const isLite = !!process.env.RENDER || o.preset === "lite";
+  const preset = o.preset || (isLite ? "lite" : "editorial");
+  const base = isLite
+    ? { width: 1024, height: 640, deviceScaleFactor: 1, fps: 30, maxDurationSec: 18, easing: "cubic-bezier(.22,.61,.36,1)", waitUntil: "domcontentloaded" }
+    : { width: 1440, height: 900, deviceScaleFactor: 2, fps: 60, maxDurationSec: 30, easing: "cubic-bezier(.22,.61,.36,1)", waitUntil: "load" };
   const p = preset === "cinematic"
     ? { scrollSpeedPxPerSec: 500, sectionHoldMs: 1100, headingHoldMs: 700 }
+    : preset === "lite"
+    ? { scrollSpeedPxPerSec: 900, sectionHoldMs: 500, headingHoldMs: 280 }
     : { scrollSpeedPxPerSec: 800, sectionHoldMs: 700, headingHoldMs: 400 };
   return { ...base, ...p, ...o };
 }
