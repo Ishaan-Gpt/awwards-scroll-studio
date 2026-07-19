@@ -1,14 +1,22 @@
 {
-  "name": "smoothrecord-worker",
+  "name": "@smoothrecord/worker",
   "version": "0.2.0",
-  "private": true,
+  "description": "SmoothRecord recorder worker — turns any website into a premium smooth-scroll MP4.",
   "type": "module",
+  "bin": {
+    "smoothrecord": "src/pair.js",
+    "smoothrecord-pair": "src/pair.js",
+    "smoothrecord-server": "src/server.js"
+  },
+  "files": ["src", "README.md"],
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "pair": "node src/pair.js",
-    "postinstall": "playwright install --with-deps chromium"
+    "postinstall": "playwright install chromium"
   },
+  "publishConfig": { "access": "public" },
+  "engines": { "node": ">=20" },
   "dependencies": {
     "fastify": "^5.1.0",
     "playwright": "1.49.1",
