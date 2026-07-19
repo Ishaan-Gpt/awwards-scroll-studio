@@ -25,7 +25,8 @@ export const Route = createFileRoute("/_authenticated/app")({
 type Tab = "record" | "jobs" | "workers" | "keys" | "mcp";
 
 function Dashboard() {
-  const [tab, setTab] = useState<Tab>("record");
+  const search = Route.useSearch();
+  const [tab, setTab] = useState<Tab>((search.tab as Tab) ?? "record");
   const navigate = useNavigate();
   const [email, setEmail] = useState<string>("");
 
@@ -52,16 +53,17 @@ function Dashboard() {
             </button>
           </div>
         </div>
-        <nav className="max-w-7xl mx-auto px-6 flex gap-1">
+        <nav className="max-w-7xl mx-auto px-6 flex gap-1 overflow-x-auto">
           {([
             ["record", "New recording", Sparkles],
             ["jobs", "My jobs", Video],
+            ["workers", "Workers", Monitor],
             ["keys", "API keys", Key],
             ["mcp", "MCP", Terminal],
           ] as const).map(([id, label, Icon]) => (
             <button
               key={id} onClick={() => setTab(id)}
-              className={`px-4 py-3 text-sm border-b-2 flex items-center gap-2 transition ${
+              className={`px-4 py-3 text-sm border-b-2 flex items-center gap-2 transition whitespace-nowrap ${
                 tab === id ? "border-acid text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -74,6 +76,7 @@ function Dashboard() {
       <main className="max-w-7xl mx-auto px-6 py-10">
         {tab === "record" && <RecordTab onDone={() => setTab("jobs")} />}
         {tab === "jobs" && <JobsTab />}
+        {tab === "workers" && <WorkersTab />}
         {tab === "keys" && <KeysTab />}
         {tab === "mcp" && <McpTab />}
       </main>
