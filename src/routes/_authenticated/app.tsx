@@ -11,6 +11,7 @@ import { Loader2, Play, Trash2, Copy, ExternalLink, Plus, Key, Terminal, LogOut,
 export const Route = createFileRoute("/_authenticated/app")({
   validateSearch: (s: Record<string, unknown>) => ({
     tab: typeof s.tab === "string" ? s.tab : undefined,
+    url: typeof s.url === "string" ? s.url : undefined,
   }),
   head: () => ({
     meta: [
