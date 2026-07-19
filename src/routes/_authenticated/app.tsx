@@ -5,9 +5,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { listMyJobs, startJob, deleteMyJob, getMyJob } from "@/lib/jobs.functions";
 import { listApiKeys, createApiKey, revokeApiKey } from "@/lib/keys.functions";
-import { Loader2, Play, Trash2, Copy, ExternalLink, Plus, Key, Terminal, LogOut, Video, Sparkles } from "lucide-react";
+import { listMyWorkers, deleteMyWorker } from "@/lib/workers.functions";
+import { Loader2, Play, Trash2, Copy, ExternalLink, Plus, Key, Terminal, LogOut, Video, Sparkles, Monitor, CheckCircle2, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    tab: typeof s.tab === "string" ? s.tab : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Dashboard — SmoothRecord" },
@@ -18,10 +22,11 @@ export const Route = createFileRoute("/_authenticated/app")({
   component: Dashboard,
 });
 
-type Tab = "record" | "jobs" | "keys" | "mcp";
+type Tab = "record" | "jobs" | "workers" | "keys" | "mcp";
 
 function Dashboard() {
-  const [tab, setTab] = useState<Tab>("record");
+  const search = Route.useSearch();
+  const [tab, setTab] = useState<Tab>((search.tab as Tab) ?? "record");
   const navigate = useNavigate();
   const [email, setEmail] = useState<string>("");
 
@@ -48,16 +53,17 @@ function Dashboard() {
             </button>
           </div>
         </div>
-        <nav className="max-w-7xl mx-auto px-6 flex gap-1">
+        <nav className="max-w-7xl mx-auto px-6 flex gap-1 overflow-x-auto">
           {([
             ["record", "New recording", Sparkles],
             ["jobs", "My jobs", Video],
+            ["workers", "Workers", Monitor],
             ["keys", "API keys", Key],
             ["mcp", "MCP", Terminal],
           ] as const).map(([id, label, Icon]) => (
             <button
               key={id} onClick={() => setTab(id)}
-              className={`px-4 py-3 text-sm border-b-2 flex items-center gap-2 transition ${
+              className={`px-4 py-3 text-sm border-b-2 flex items-center gap-2 transition whitespace-nowrap ${
                 tab === id ? "border-acid text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -70,6 +76,7 @@ function Dashboard() {
       <main className="max-w-7xl mx-auto px-6 py-10">
         {tab === "record" && <RecordTab onDone={() => setTab("jobs")} />}
         {tab === "jobs" && <JobsTab />}
+        {tab === "workers" && <WorkersTab />}
         {tab === "keys" && <KeysTab />}
         {tab === "mcp" && <McpTab />}
       </main>
@@ -346,6 +353,99 @@ function McpTab() {
             <li><span className="text-acid">list_jobs</span> — recent recordings</li>
           </ul>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function WorkersTab() {
+  const list = useServerFn(listMyWorkers);
+  const del = useServerFn(deleteMyWorker);
+  const qc = useQueryClient();
+  const [origin, setOrigin] = useState("");
+  const [os, setOs] = useState<"mac" | "win">("mac");
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+    if (typeof navigator !== "undefined" && /Win/i.test(navigator.platform)) setOs("win");
+  }, []);
+
+  const q = useQuery({
+    queryKey: ["my-workers"],
+    queryFn: () => list(),
+    refetchInterval: 5000,
+  });
+  const delMut = useMutation({
+    mutationFn: (id: string) => del({ data: { id } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-workers"] }),
+  });
+
+  const macCmd = `curl -fsSL ${origin}/install.sh | sh`;
+  const winCmd = `iwr -useb ${origin}/install.ps1 | iex`;
+  const cmd = os === "mac" ? macCmd : winCmd;
+
+  return (
+    <div className="max-w-3xl">
+      <h1 className="font-display text-5xl mb-2">Your workers</h1>
+      <p className="text-muted-foreground mb-8">
+        Recordings run on <em className="text-foreground not-italic">your own computer</em> for privacy and unlimited render time.
+        Install a worker once, keep it running, record anything.
+      </p>
+
+      <div className="rounded-2xl border border-border bg-card p-6 mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="text-xs uppercase tracking-widest text-acid">Install in one command</div>
+          <div className="flex-1" />
+          <div className="inline-flex rounded-md border border-border p-0.5">
+            {(["mac", "win"] as const).map((o) => (
+              <button key={o} onClick={() => setOs(o)}
+                className={`px-3 py-1 text-xs rounded ${os === o ? "bg-acid text-background" : "text-muted-foreground"}`}>
+                {o === "mac" ? "macOS / Linux" : "Windows"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-secondary border border-border p-3 font-mono text-xs">
+          <code className="flex-1 break-all">{cmd}</code>
+          <button onClick={() => navigator.clipboard.writeText(cmd)} className="p-1.5 hover:bg-background rounded">
+            <Copy className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        <ol className="mt-5 space-y-2 text-sm text-muted-foreground list-decimal list-inside">
+          <li>Paste the command into {os === "mac" ? "Terminal" : "PowerShell"} and press Enter.</li>
+          <li>The installer downloads the worker + tunnel, prints a pairing link, and starts running.</li>
+          <li>Click the link, confirm "Pair this worker" — your dashboard flips to <span className="text-acid">online</span>.</li>
+          <li>Leave the terminal open while you use SmoothRecord. Ctrl-C to stop anytime.</li>
+        </ol>
+        <div className="mt-5 pt-4 border-t border-border text-xs text-muted-foreground">
+          Requires Node.js 20+. The installer will guide you to install it if missing. Signed one-click apps are coming.
+        </div>
+      </div>
+
+      <h2 className="font-display text-2xl mb-3">Paired workers</h2>
+      {q.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+      {q.data?.length === 0 && (
+        <div className="border border-dashed border-border rounded-xl p-8 text-center text-sm text-muted-foreground">
+          No workers paired yet. Run the command above to add one.
+        </div>
+      )}
+      <div className="space-y-2">
+        {q.data?.map((w) => (
+          <div key={w.id} className="flex items-center gap-4 rounded-xl border border-border bg-card p-4">
+            <div className={`w-2.5 h-2.5 rounded-full ${w.status === "online" ? "bg-acid" : "bg-destructive"}`} />
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-sm">{w.name}</div>
+              <div className="text-xs text-muted-foreground font-mono truncate">{w.worker_url}</div>
+              {w.last_error && <div className="text-xs text-destructive mt-1 truncate">{w.last_error}</div>}
+            </div>
+            <div className="text-xs text-muted-foreground hidden sm:block">
+              Last seen {new Date(w.last_seen_at).toLocaleTimeString()}
+            </div>
+            <button onClick={() => delMut.mutate(w.id)} className="p-2 rounded-md text-muted-foreground hover:text-destructive">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

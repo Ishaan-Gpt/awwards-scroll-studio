@@ -28,7 +28,8 @@ export default defineTool({
     const preset = input.preset ?? "editorial";
 
     try {
-      const { workerJobId } = await submitToWorker({ input: jobInput, preset });
+      const userId = ctx.getUserId()!;
+      const { workerJobId } = await submitToWorker({ input: jobInput, preset, userId });
       const { data, error } = await supabaseAdmin
         .from("jobs")
         .insert({

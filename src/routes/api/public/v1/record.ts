@@ -40,6 +40,7 @@ export const Route = createFileRoute("/api/public/v1/record")({
             input: parsed.data.input,
             options: parsed.data.options,
             preset,
+            userId: owner.userId,
           }));
         } catch (e) {
           return Response.json({ error: e instanceof Error ? e.message : "Worker error" }, { status: 502 });

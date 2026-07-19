@@ -27,7 +27,7 @@ export default defineTool({
 
     if ((row.status === "queued" || row.status === "running") && row.worker_job_id) {
       try {
-        const wj = await fetchWorkerJob(row.worker_job_id);
+        const wj = await fetchWorkerJob(row.worker_job_id, ctx.getUserId()!);
         if (wj.status !== row.status) {
           await supabaseAdmin.from("jobs").update({
             status: wj.status, mp4_url: wj.mp4Url ?? null, poster_url: wj.posterUrl ?? null,
