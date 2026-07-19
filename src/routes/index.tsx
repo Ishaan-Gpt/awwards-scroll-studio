@@ -73,12 +73,12 @@ function Nav() {
           Smooth<span className="italic text-acid">Record</span>
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-          <Link to="/playground" className="hover:text-foreground transition">Playground</Link>
+          <Link to="/app" className="hover:text-foreground transition">Dashboard</Link>
           <Link to="/docs" className="hover:text-foreground transition">Docs</Link>
           <a href="#connectors" className="hover:text-foreground transition">Connectors</a>
         </nav>
         <Link
-          to="/playground"
+          to="/app"
           className="group inline-flex items-center gap-2 px-4 py-2 rounded-full bg-acid text-background text-sm font-medium hover:pl-5 transition-all"
         >
           Try it <ArrowUpRight className="w-4 h-4 group-hover:rotate-45 transition-transform" />
@@ -96,7 +96,7 @@ function UrlBar({ url, setUrl }: { url: string; setUrl: (s: string) => void }) {
         e.preventDefault();
         const q = url.trim();
         if (!q) return;
-        window.location.href = `/playground?url=${encodeURIComponent(q)}`;
+        window.location.href = `/app?url=${encodeURIComponent(q)}`;
       }}
     >
       <label className="block text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">
@@ -363,7 +363,7 @@ function FinalCTA() {
           Ship a video<br /><span className="italic">right now.</span>
         </h2>
         <div className="mt-12 flex items-center justify-center gap-4">
-          <Link to="/playground" className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-acid text-background font-medium text-lg hover:pl-10 transition-all">
+          <Link to="/app" className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-acid text-background font-medium text-lg hover:pl-10 transition-all">
             Open the playground <ArrowUpRight className="w-5 h-5 group-hover:rotate-45 transition-transform" />
           </Link>
           <Link to="/docs" className="inline-flex items-center gap-2 px-8 py-4 rounded-full border border-border text-foreground hover:border-acid transition-colors">
@@ -381,7 +381,7 @@ function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6 text-sm text-muted-foreground">
         <div className="font-display text-2xl text-foreground">Smooth<span className="italic text-acid">Record</span></div>
         <div className="flex items-center gap-6 font-mono text-xs uppercase tracking-widest">
-          <Link to="/playground" className="hover:text-foreground">Playground</Link>
+          <Link to="/app" className="hover:text-foreground">Dashboard</Link>
           <Link to="/docs" className="hover:text-foreground">Docs</Link>
           <a href="https://github.com" className="hover:text-foreground inline-flex items-center gap-1"><Github className="w-3 h-3" /> Source</a>
         </div>

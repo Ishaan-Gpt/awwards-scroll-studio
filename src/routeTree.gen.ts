@@ -10,14 +10,29 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PlaygroundRouteImport } from './routes/playground'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as DocsRouteImport } from './routes/docs'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as ApiPublicRecordRouteImport } from './routes/api/public/record'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as ApiPublicV1RecordRouteImport } from './routes/api/public/v1/record'
 import { Route as ApiPublicRecordIdRouteImport } from './routes/api/public/record.$id'
+import { Route as ApiPublicV1RecordIdRouteImport } from './routes/api/public/v1/record.$id'
 
 const PlaygroundRoute = PlaygroundRouteImport.update({
   id: '/playground',
   path: '/playground',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsRoute = DocsRouteImport.update({
@@ -25,14 +40,56 @@ const DocsRoute = DocsRouteImport.update({
   path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicRecordRoute = ApiPublicRecordRouteImport.update({
   id: '/api/public/record',
   path: '/api/public/record',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1RecordRoute = ApiPublicV1RecordRouteImport.update({
+  id: '/api/public/v1/record',
+  path: '/api/public/v1/record',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicRecordIdRoute = ApiPublicRecordIdRouteImport.update({
@@ -40,58 +97,127 @@ const ApiPublicRecordIdRoute = ApiPublicRecordIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiPublicRecordRoute,
 } as any)
+const ApiPublicV1RecordIdRoute = ApiPublicV1RecordIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiPublicV1RecordRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/docs': typeof DocsRoute
+  '/mcp': typeof McpRoute
   '/playground': typeof PlaygroundRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/app': typeof AuthenticatedAppRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/record': typeof ApiPublicRecordRouteWithChildren
   '/api/public/record/$id': typeof ApiPublicRecordIdRoute
+  '/api/public/v1/record': typeof ApiPublicV1RecordRouteWithChildren
+  '/api/public/v1/record/$id': typeof ApiPublicV1RecordIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/docs': typeof DocsRoute
+  '/mcp': typeof McpRoute
   '/playground': typeof PlaygroundRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/app': typeof AuthenticatedAppRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/record': typeof ApiPublicRecordRouteWithChildren
   '/api/public/record/$id': typeof ApiPublicRecordIdRoute
+  '/api/public/v1/record': typeof ApiPublicV1RecordRouteWithChildren
+  '/api/public/v1/record/$id': typeof ApiPublicV1RecordIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/docs': typeof DocsRoute
+  '/mcp': typeof McpRoute
   '/playground': typeof PlaygroundRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/_authenticated/app': typeof AuthenticatedAppRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/record': typeof ApiPublicRecordRouteWithChildren
   '/api/public/record/$id': typeof ApiPublicRecordIdRoute
+  '/api/public/v1/record': typeof ApiPublicV1RecordRouteWithChildren
+  '/api/public/v1/record/$id': typeof ApiPublicV1RecordIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/docs'
+    | '/mcp'
     | '/playground'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
+    | '/app'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/record'
     | '/api/public/record/$id'
+    | '/api/public/v1/record'
+    | '/api/public/v1/record/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/docs'
+    | '/mcp'
     | '/playground'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
+    | '/app'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/record'
     | '/api/public/record/$id'
+    | '/api/public/v1/record'
+    | '/api/public/v1/record/$id'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
+    | '/auth'
     | '/docs'
+    | '/mcp'
     | '/playground'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
+    | '/_authenticated/app'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/record'
     | '/api/public/record/$id'
+    | '/api/public/v1/record'
+    | '/api/public/v1/record/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   DocsRoute: typeof DocsRoute
+  McpRoute: typeof McpRoute
   PlaygroundRoute: typeof PlaygroundRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicRecordRoute: typeof ApiPublicRecordRouteWithChildren
+  ApiPublicV1RecordRoute: typeof ApiPublicV1RecordRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -103,11 +229,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlaygroundRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/docs': {
       id: '/docs'
       path: '/docs'
       fullPath: '/docs'
       preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -117,11 +264,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/record': {
       id: '/api/public/record'
       path: '/api/public/record'
       fullPath: '/api/public/record'
       preLoaderRoute: typeof ApiPublicRecordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/record': {
+      id: '/api/public/v1/record'
+      path: '/api/public/v1/record'
+      fullPath: '/api/public/v1/record'
+      preLoaderRoute: typeof ApiPublicV1RecordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/record/$id': {
@@ -131,8 +320,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicRecordIdRouteImport
       parentRoute: typeof ApiPublicRecordRoute
     }
+    '/api/public/v1/record/$id': {
+      id: '/api/public/v1/record/$id'
+      path: '/$id'
+      fullPath: '/api/public/v1/record/$id'
+      preLoaderRoute: typeof ApiPublicV1RecordIdRouteImport
+      parentRoute: typeof ApiPublicV1RecordRoute
+    }
   }
 }
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppRoute: typeof AuthenticatedAppRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppRoute: AuthenticatedAppRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface ApiPublicRecordRouteChildren {
   ApiPublicRecordIdRoute: typeof ApiPublicRecordIdRoute
@@ -146,12 +353,42 @@ const ApiPublicRecordRouteWithChildren = ApiPublicRecordRoute._addFileChildren(
   ApiPublicRecordRouteChildren,
 )
 
+interface ApiPublicV1RecordRouteChildren {
+  ApiPublicV1RecordIdRoute: typeof ApiPublicV1RecordIdRoute
+}
+
+const ApiPublicV1RecordRouteChildren: ApiPublicV1RecordRouteChildren = {
+  ApiPublicV1RecordIdRoute: ApiPublicV1RecordIdRoute,
+}
+
+const ApiPublicV1RecordRouteWithChildren =
+  ApiPublicV1RecordRoute._addFileChildren(ApiPublicV1RecordRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   DocsRoute: DocsRoute,
+  McpRoute: McpRoute,
   PlaygroundRoute: PlaygroundRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicRecordRoute: ApiPublicRecordRouteWithChildren,
+  ApiPublicV1RecordRoute: ApiPublicV1RecordRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
