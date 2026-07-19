@@ -5,9 +5,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { listMyJobs, startJob, deleteMyJob, getMyJob } from "@/lib/jobs.functions";
 import { listApiKeys, createApiKey, revokeApiKey } from "@/lib/keys.functions";
-import { Loader2, Play, Trash2, Copy, ExternalLink, Plus, Key, Terminal, LogOut, Video, Sparkles } from "lucide-react";
+import { listMyWorkers, deleteMyWorker } from "@/lib/workers.functions";
+import { Loader2, Play, Trash2, Copy, ExternalLink, Plus, Key, Terminal, LogOut, Video, Sparkles, Monitor, CheckCircle2, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    tab: typeof s.tab === "string" ? s.tab : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Dashboard — SmoothRecord" },
@@ -18,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/app")({
   component: Dashboard,
 });
 
-type Tab = "record" | "jobs" | "keys" | "mcp";
+type Tab = "record" | "jobs" | "workers" | "keys" | "mcp";
 
 function Dashboard() {
   const [tab, setTab] = useState<Tab>("record");
