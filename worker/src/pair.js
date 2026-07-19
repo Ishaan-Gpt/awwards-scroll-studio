@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // Runs the SmoothRecord worker + Cloudflare Quick Tunnel + auto-pairs with the
 // SmoothRecord control plane so the user never sees ports/tokens/urls.
 //
