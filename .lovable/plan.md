@@ -1,43 +1,99 @@
-# Wire up the Render worker
 
-Worker URL: `https://smoothrecord.onrender.com`
+# SmoothRecord v0.2 — "Real product" stage
 
-## Heads-up on the token
+Turning the working prototype into something real users can sign up for, use, integrate, and connect to AI clients (ChatGPT, Claude) via MCP.
 
-You pasted `WORKER_TOKEN` in plain chat, so treat it as compromised. Plan is to save the current value now to unblock testing, then rotate it right after the smoke test — I'll walk you through the 10-second rotation.
+## What ships in this stage
 
-Also, Render Free sleeps after 15 min idle and gives 512 MB RAM. Chromium usually needs more, so the first render after a sleep will take ~40–60 s to warm up and long / heavy pages may OOM. If that bites, I'll add a `lite` preset (960×600, 30fps, 15s cap) that auto-engages when `RENDER=true`.
+1. **Lovable Cloud on** — database + auth + secrets, no external accounts.
+2. **Auth** — Email/password + Sign in with Google. `/auth` public route, protected `/app/*` behind `_authenticated`.
+3. **Per-user data** — jobs and API keys persisted per account, with RLS.
+4. **Dashboard** (`/app`) — recent renders, thumbnails, mp4 downloads, re-run, delete.
+5. **API keys** (`/app/keys`) — user-generated `sk_smr_...` keys. REST endpoints accept `Authorization: Bearer sk_smr_...` and attribute usage to that user.
+6. **REST API hardening** — `/api/public/v1/record` + `/api/public/v1/record/:id` (versioned), per-key rate limiting, quota, input size caps.
+7. **MCP server** (`/api/public/mcp`) — OAuth-authorized via managed Cloud Auth so ChatGPT/Claude/Codex users can connect and call `record_website`, `get_job`, `list_jobs`.
+8. **Consent route** `/.lovable/oauth/consent` for the managed OAuth server.
+9. **Landing polish** — pricing tier stub (Free / Pro — "coming soon", no Stripe yet), CTA to sign up, updated docs with keys + MCP setup.
+10. **Publish** — set final title/description/OG, publish, hand you the live URL.
 
-## Steps (build mode)
+Payments are intentionally out of scope for this stage — say the word and I add Stripe next.
 
-1. **Save secrets on the Lovable app**
-   - `set_secret` → `WORKER_BASE_URL = https://smoothrecord.onrender.com` (known value, no form).
-   - `add_secret` → `WORKER_TOKEN` (secure form; I'll pre-fill guidance so you paste `86d9f9cf9d34e7da043a027e316bf86f` — or better, paste a freshly rotated one, see step 4).
+## Data model
 
-2. **Sanity-check the worker is reachable**
-   From the sandbox:
-   ```
-   curl -s https://smoothrecord.onrender.com/healthz
-   ```
-   Expect `{"ok":true,"jobs":0}`. If it 502s for ~40 s, that's just Render waking the free instance.
+```text
+profiles              (id → auth.users, display_name, avatar_url, created_at)
+user_roles            (user_id, role: 'admin'|'user')  -- separate table, has_role() SECURITY DEFINER
+api_keys              (id, user_id, name, key_prefix, key_hash, last_used_at, created_at, revoked_at)
+jobs                  (id, user_id, worker_job_id, status, input jsonb, options jsonb,
+                       mp4_url, poster_url, duration_sec, error, created_at, updated_at)
+usage_daily           (user_id, day, jobs_started, seconds_rendered)  -- for quota
+mcp_oauth_clients     (managed by Cloud Auth — nothing for us to model)
+```
 
-3. **End-to-end smoke test through our API**
-   - `POST /api/public/record` with `{ input: { type: "url", url: "https://linear.app" }, options: { preset: "editorial", maxDurationSec: 12 } }` → expect `{ jobId, statusUrl }`.
-   - Poll `GET /api/public/record/:id` until `status: "succeeded"` → confirm `mp4Url` downloads and plays.
-   - If the job fails with OOM/timeout, retry with `{ preset: "editorial", width: 960, height: 600, deviceScaleFactor: 1, fps: 30, maxDurationSec: 10 }` to confirm the worker itself is healthy, then I'll add the auto `lite` preset to `worker/src/record.js` + `server.js` and you redeploy.
+RLS: every table scoped by `auth.uid()`. `api_keys.key_hash` is `sha256(key)`; raw key shown once at creation. `jobs.user_id` populated from either the session (dashboard) or the API key owner (REST/MCP).
 
-4. **Rotate the exposed token**
-   - On your machine: `openssl rand -hex 32` → copy the new value.
-   - Render dashboard → your service → **Environment** → edit `WORKER_TOKEN` → paste new value → Save (triggers auto-redeploy, ~2 min).
-   - Back here I'll run `update_secret` for `WORKER_TOKEN` so you paste the same new value into the Lovable app.
-   - Re-run the smoke test to confirm.
+## Request flow
 
-5. **Small UX touch**
-   - `src/routes/playground.tsx` currently shows a "Worker not configured" hint when the API returns `worker: "not_configured"`. Once the worker is wired, that hint won't fire — no code change needed, but I'll do one live run from the Playground UI to confirm the video player + download button both work.
+```text
+Dashboard  ──► createServerFn (requireSupabaseAuth) ──► insert job row ──► worker
+REST       ──► /api/public/v1/record  (Bearer sk_smr_*) ──► lookup key ──► insert job row ──► worker
+MCP        ──► /api/public/mcp (OAuth bearer) ──► tools call record_website ──► insert job row ──► worker
+Worker     ──► callback /api/public/v1/worker-callback (HMAC) ──► update job row
+```
 
-## Nothing else changes
+Polling stays but callback makes the dashboard update instantly.
 
-- No schema, no auth, no new routes. Only two secrets get written, and one verification pass through the existing `/api/public/record` route.
-- If the smoke test surfaces the Render RAM limit, I'll add the `lite`/`RENDER=true` auto-switch as a follow-up (single edit to `worker/src/record.js` + `worker/src/server.js`, then you redeploy on Render).
+## Routes
 
-Approve and I'll execute steps 1–3 immediately, then guide you through 4.
+```text
+/                              landing (public, polished)
+/pricing                       Free / Pro stub (public)
+/docs                          updated: keys, REST v1, MCP setup (public)
+/auth                          sign in / sign up (public, Google + email)
+/.lovable/oauth/consent        managed Cloud Auth consent (public)
+/app                           dashboard: recent jobs (protected)
+/app/new                       playground moved here (protected)
+/app/keys                      API keys manager (protected)
+/app/mcp                       "Connect to ChatGPT/Claude" instructions + URL (protected)
+/api/public/v1/record          POST — start job (Bearer sk_smr_* OR OAuth)
+/api/public/v1/record/:id      GET  — status
+/api/public/v1/worker-callback POST — HMAC-verified worker → us
+/api/public/mcp                MCP server (OAuth-protected resource)
+/.well-known/oauth-protected-resource
+```
+
+## MCP tools exposed
+
+- `record_website({ url | html, preset?, options? }) → { jobId, statusUrl }`
+- `get_job({ jobId }) → { status, mp4Url?, posterUrl?, error? }`
+- `list_jobs({ limit? }) → Job[]`
+- `wait_for_job({ jobId, timeoutSec? }) → final job` (long-poll wrapper, ≤60s)
+
+## Rate limits & quotas (defaults — easy to change)
+
+- Free: 5 jobs/day, max 30s render, 720p, 1 concurrent.
+- Pro (stub, not billable yet): 200 jobs/day, 60s, 1080p, 3 concurrent.
+- Per-IP unauthenticated: 3/hour on `/api/public/v1/record` without a key.
+
+## Steps
+
+1. Enable Lovable Cloud.
+2. Migration: tables + RLS + `has_role()` + trigger to create profile row on signup + grants.
+3. `configure_social_auth` for Google, enable HIBP password check.
+4. Managed OAuth server + consent route (`src/routes/[.]lovable.oauth.consent.tsx`).
+5. Server fns: `createApiKey`, `revokeApiKey`, `listApiKeys`, `listMyJobs`, `getMyJob`, `startJob` (dashboard path).
+6. REST v1 routes with Bearer-key auth + rate limiting.
+7. MCP route using `@ai-sdk/mcp` server style, OAuth-validated bearer.
+8. Worker: add `callback_url` + HMAC signature; frontend switches to callback-first, poll as fallback.
+9. Rebuild UI: `/auth`, `/app`, `/app/keys`, `/app/new`, `/app/mcp`, refreshed landing + docs, pricing stub.
+10. Head metadata + OG on every route.
+11. Publish.
+
+## What I need from you (in one go if possible)
+
+- Confirm Cloud + Google sign-in is fine (default choice).
+- A short **tagline** for the landing hero (one line, e.g. *"Awwwards-grade scroll videos of any website, in one API call."*). I'll write one if you skip.
+- Do you want **profiles** (display name/avatar) — or is email-only fine? Default: yes, minimal profile.
+- Anything you want branded differently (logo text, accent color) — otherwise I keep the editorial-dark / acid-green look.
+
+Reply "go" (with any of the above) and I'll build the whole thing straight through.
