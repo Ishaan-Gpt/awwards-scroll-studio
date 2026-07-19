@@ -75,7 +75,7 @@ function Dashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-10">
-        {tab === "record" && <RecordTab onDone={() => setTab("jobs")} />}
+        {tab === "record" && <RecordTab prefillUrl={search.url} onDone={() => setTab("jobs")} onNeedsWorker={() => setTab("workers")} />}
         {tab === "jobs" && <JobsTab />}
         {tab === "workers" && <WorkersTab />}
         {tab === "keys" && <KeysTab />}
