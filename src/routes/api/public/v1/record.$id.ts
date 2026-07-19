@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/public/v1/record/$id")({
         // Refresh from worker if still running.
         if ((row.status === "queued" || row.status === "running") && row.worker_job_id) {
           try {
-            const wj = await fetchWorkerJob(row.worker_job_id);
+            const wj = await fetchWorkerJob(row.worker_job_id, owner.userId);
             if (wj.status !== row.status) {
               await supabaseAdmin.from("jobs").update({
                 status: wj.status,

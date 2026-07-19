@@ -3,6 +3,29 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { RecordBodySchema } from "./record-schemas";
 
+const DEFAULT_MAX_JOBS_PER_DAY = 50;
+
+async function enforceQuota(userId: string, ctx: { supabase: Awaited<ReturnType<typeof import("@/integrations/supabase/auth-middleware").requireSupabaseAuth>>["context"]["supabase"] } | null) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: usage } = await supabaseAdmin
+    .from("usage_daily")
+    .select("jobs_started, max_jobs_per_day")
+    .eq("user_id", userId)
+    .eq("day", today)
+    .maybeSingle();
+  const cap = usage?.max_jobs_per_day ?? DEFAULT_MAX_JOBS_PER_DAY;
+  const started = usage?.jobs_started ?? 0;
+  if (started >= cap) {
+    throw new Error(`Daily quota reached (${started}/${cap} recordings today). Try again tomorrow.`);
+  }
+  // Increment (upsert).
+  await supabaseAdmin.from("usage_daily").upsert(
+    { user_id: userId, day: today, jobs_started: started + 1, max_jobs_per_day: cap },
+    { onConflict: "user_id,day" },
+  );
+}
+
 export const listMyJobs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -29,11 +52,10 @@ export const getMyJob = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Not found");
 
-    // If still running, refresh from worker
     if ((row.status === "queued" || row.status === "running") && row.worker_job_id) {
       const { fetchWorkerJob } = await import("./worker.server");
       try {
-        const wj = await fetchWorkerJob(row.worker_job_id);
+        const wj = await fetchWorkerJob(row.worker_job_id, context.userId);
         if (wj.status !== row.status || wj.mp4Url !== row.mp4_url) {
           const { data: updated } = await context.supabase
             .from("jobs")
@@ -50,9 +72,7 @@ export const getMyJob = createServerFn({ method: "POST" })
             .maybeSingle();
           return updated ?? row;
         }
-      } catch {
-        // Ignore worker fetch errors; return stored row.
-      }
+      } catch { /* ignore */ }
     }
     return row;
   });
@@ -61,12 +81,14 @@ export const startJob = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => RecordBodySchema.parse(input))
   .handler(async ({ data, context }) => {
+    await enforceQuota(context.userId, { supabase: context.supabase });
     const { submitToWorker } = await import("./worker.server");
     const preset = data.options?.preset ?? "editorial";
     const { workerJobId } = await submitToWorker({
       input: data.input,
       options: data.options,
       preset,
+      userId: context.userId,
     });
     const { data: row, error } = await context.supabase
       .from("jobs")
