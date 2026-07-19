@@ -59,10 +59,11 @@ if [[ -n "$NPM_PKG" ]]; then
   SMOOTHRECORD_APP="$APP_URL" npx --yes "$NPM_PKG" pair
 elif [[ -n "$TAR_URL" ]]; then
   mkdir -p "$INSTALL_DIR"; cd "$INSTALL_DIR"
-  if [[ ! -f package.json ]]; then
+  if [[ ! -f worker/package.json ]]; then
     echo "→ Downloading worker source..."
     curl -fsSL "$TAR_URL" | tar -xz --strip-components=1
   fi
+  cd worker
   echo "→ Installing dependencies (Chromium download ~1 min)..."
   npm install --omit=dev
   echo ""; echo "✓ Ready. Starting pairing..."; echo ""
