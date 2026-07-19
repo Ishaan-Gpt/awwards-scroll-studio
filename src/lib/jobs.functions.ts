@@ -5,7 +5,7 @@ import { RecordBodySchema } from "./record-schemas";
 
 const DEFAULT_MAX_JOBS_PER_DAY = 50;
 
-async function enforceQuota(userId: string, ctx: { supabase: Awaited<ReturnType<typeof import("@/integrations/supabase/auth-middleware").requireSupabaseAuth>>["context"]["supabase"] } | null) {
+async function enforceQuota(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const today = new Date().toISOString().slice(0, 10);
   const { data: usage } = await supabaseAdmin
@@ -19,7 +19,6 @@ async function enforceQuota(userId: string, ctx: { supabase: Awaited<ReturnType<
   if (started >= cap) {
     throw new Error(`Daily quota reached (${started}/${cap} recordings today). Try again tomorrow.`);
   }
-  // Increment (upsert).
   await supabaseAdmin.from("usage_daily").upsert(
     { user_id: userId, day: today, jobs_started: started + 1, max_jobs_per_day: cap },
     { onConflict: "user_id,day" },
@@ -81,7 +80,7 @@ export const startJob = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => RecordBodySchema.parse(input))
   .handler(async ({ data, context }) => {
-    await enforceQuota(context.userId, { supabase: context.supabase });
+    await enforceQuota(context.userId);
     const { submitToWorker } = await import("./worker.server");
     const preset = data.options?.preset ?? "editorial";
     const { workerJobId } = await submitToWorker({
