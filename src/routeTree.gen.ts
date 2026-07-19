@@ -15,6 +15,7 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedPairRouteImport } from './routes/_authenticated/pair'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
@@ -24,6 +25,8 @@ import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.
 import { Route as ApiPublicV1RecordRouteImport } from './routes/api/public/v1/record'
 import { Route as ApiPublicRecordIdRouteImport } from './routes/api/public/record.$id'
 import { Route as ApiPublicV1RecordIdRouteImport } from './routes/api/public/v1/record.$id'
+import { Route as ApiPublicV1PairStartRouteImport } from './routes/api/public/v1/pair/start'
+import { Route as ApiPublicV1PairCodeRouteImport } from './routes/api/public/v1/pair/$code'
 
 const PlaygroundRoute = PlaygroundRouteImport.update({
   id: '/playground',
@@ -53,6 +56,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedPairRoute = AuthenticatedPairRouteImport.update({
+  id: '/pair',
+  path: '/pair',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   id: '/app',
@@ -102,6 +110,16 @@ const ApiPublicV1RecordIdRoute = ApiPublicV1RecordIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiPublicV1RecordRoute,
 } as any)
+const ApiPublicV1PairStartRoute = ApiPublicV1PairStartRouteImport.update({
+  id: '/api/public/v1/pair/start',
+  path: '/api/public/v1/pair/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1PairCodeRoute = ApiPublicV1PairCodeRouteImport.update({
+  id: '/api/public/v1/pair/$code',
+  path: '/api/public/v1/pair/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -112,11 +130,14 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/app': typeof AuthenticatedAppRoute
+  '/pair': typeof AuthenticatedPairRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/record': typeof ApiPublicRecordRouteWithChildren
   '/api/public/record/$id': typeof ApiPublicRecordIdRoute
   '/api/public/v1/record': typeof ApiPublicV1RecordRouteWithChildren
+  '/api/public/v1/pair/$code': typeof ApiPublicV1PairCodeRoute
+  '/api/public/v1/pair/start': typeof ApiPublicV1PairStartRoute
   '/api/public/v1/record/$id': typeof ApiPublicV1RecordIdRoute
 }
 export interface FileRoutesByTo {
@@ -128,11 +149,14 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/app': typeof AuthenticatedAppRoute
+  '/pair': typeof AuthenticatedPairRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/record': typeof ApiPublicRecordRouteWithChildren
   '/api/public/record/$id': typeof ApiPublicRecordIdRoute
   '/api/public/v1/record': typeof ApiPublicV1RecordRouteWithChildren
+  '/api/public/v1/pair/$code': typeof ApiPublicV1PairCodeRoute
+  '/api/public/v1/pair/start': typeof ApiPublicV1PairStartRoute
   '/api/public/v1/record/$id': typeof ApiPublicV1RecordIdRoute
 }
 export interface FileRoutesById {
@@ -146,11 +170,14 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
+  '/_authenticated/pair': typeof AuthenticatedPairRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/record': typeof ApiPublicRecordRouteWithChildren
   '/api/public/record/$id': typeof ApiPublicRecordIdRoute
   '/api/public/v1/record': typeof ApiPublicV1RecordRouteWithChildren
+  '/api/public/v1/pair/$code': typeof ApiPublicV1PairCodeRoute
+  '/api/public/v1/pair/start': typeof ApiPublicV1PairStartRoute
   '/api/public/v1/record/$id': typeof ApiPublicV1RecordIdRoute
 }
 export interface FileRouteTypes {
@@ -164,11 +191,14 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/app'
+    | '/pair'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/record'
     | '/api/public/record/$id'
     | '/api/public/v1/record'
+    | '/api/public/v1/pair/$code'
+    | '/api/public/v1/pair/start'
     | '/api/public/v1/record/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -180,11 +210,14 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/app'
+    | '/pair'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/record'
     | '/api/public/record/$id'
     | '/api/public/v1/record'
+    | '/api/public/v1/pair/$code'
+    | '/api/public/v1/pair/start'
     | '/api/public/v1/record/$id'
   id:
     | '__root__'
@@ -197,11 +230,14 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/app'
+    | '/_authenticated/pair'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/record'
     | '/api/public/record/$id'
     | '/api/public/v1/record'
+    | '/api/public/v1/pair/$code'
+    | '/api/public/v1/pair/start'
     | '/api/public/v1/record/$id'
   fileRoutesById: FileRoutesById
 }
@@ -218,6 +254,8 @@ export interface RootRouteChildren {
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicRecordRoute: typeof ApiPublicRecordRouteWithChildren
   ApiPublicV1RecordRoute: typeof ApiPublicV1RecordRouteWithChildren
+  ApiPublicV1PairCodeRoute: typeof ApiPublicV1PairCodeRoute
+  ApiPublicV1PairStartRoute: typeof ApiPublicV1PairStartRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -263,6 +301,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/pair': {
+      id: '/_authenticated/pair'
+      path: '/pair'
+      fullPath: '/pair'
+      preLoaderRoute: typeof AuthenticatedPairRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/app': {
       id: '/_authenticated/app'
@@ -327,15 +372,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1RecordIdRouteImport
       parentRoute: typeof ApiPublicV1RecordRoute
     }
+    '/api/public/v1/pair/start': {
+      id: '/api/public/v1/pair/start'
+      path: '/api/public/v1/pair/start'
+      fullPath: '/api/public/v1/pair/start'
+      preLoaderRoute: typeof ApiPublicV1PairStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/pair/$code': {
+      id: '/api/public/v1/pair/$code'
+      path: '/api/public/v1/pair/$code'
+      fullPath: '/api/public/v1/pair/$code'
+      preLoaderRoute: typeof ApiPublicV1PairCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
+  AuthenticatedPairRoute: typeof AuthenticatedPairRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppRoute: AuthenticatedAppRoute,
+  AuthenticatedPairRoute: AuthenticatedPairRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -378,6 +439,8 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicRecordRoute: ApiPublicRecordRouteWithChildren,
   ApiPublicV1RecordRoute: ApiPublicV1RecordRouteWithChildren,
+  ApiPublicV1PairCodeRoute: ApiPublicV1PairCodeRoute,
+  ApiPublicV1PairStartRoute: ApiPublicV1PairStartRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
