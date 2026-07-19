@@ -53,13 +53,14 @@ if ($NpmPkg -ne "") {
 } elseif ($TarUrl -ne "") {
     New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
     Set-Location $InstallDir
-    if (-not (Test-Path "package.json")) {
+    if (-not (Test-Path "worker\package.json")) {
         Write-Host "→ Downloading worker source..." -ForegroundColor Yellow
         $tar = Join-Path $InstallDir "worker.tar.gz"
         Invoke-WebRequest -Uri $TarUrl -OutFile $tar
         tar -xzf $tar --strip-components=1
         Remove-Item $tar
     }
+    Set-Location worker
     Write-Host "→ Installing dependencies (Chromium ~1 min)..." -ForegroundColor Yellow
     npm install --omit=dev
     Write-Host ""; Write-Host "✓ Ready. Starting pairing..." -ForegroundColor Green; Write-Host ""
