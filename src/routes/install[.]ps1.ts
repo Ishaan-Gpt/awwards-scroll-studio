@@ -7,7 +7,7 @@ export const Route = createFileRoute("/install.ps1")({
     handlers: {
       GET: async ({ request }) => {
         const appUrl = new URL(request.url).origin;
-        const npmPkg = process.env.WORKER_NPM_PACKAGE ?? "";
+        const npmPkg = process.env.WORKER_NPM_PACKAGE || "@ishaan_gpt/smoothrecord-worker";
         const tarUrl = process.env.WORKER_TARBALL_URL ?? "";
 
         const SCRIPT = `# SmoothRecord — Windows installer

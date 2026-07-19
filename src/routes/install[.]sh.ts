@@ -10,7 +10,7 @@ export const Route = createFileRoute("/install.sh")({
     handlers: {
       GET: async ({ request }) => {
         const appUrl = new URL(request.url).origin;
-        const npmPkg = process.env.WORKER_NPM_PACKAGE ?? "";
+        const npmPkg = process.env.WORKER_NPM_PACKAGE || "@ishaan_gpt/smoothrecord-worker";
         const tarUrl = process.env.WORKER_TARBALL_URL ?? "";
 
         const SCRIPT = `#!/usr/bin/env bash
