@@ -43,12 +43,12 @@ export async function runJob({ id, outDir, input, options }) {
 
     const page = await context.newPage();
 
-    await page.goto(targetUrl, { waitUntil: "networkidle", timeout: 60_000 });
+    await page.goto(targetUrl, { waitUntil: opts.waitUntil, timeout: 45_000 });
 
     // Wait for fonts + a settle beat.
     await page.evaluate(async () => {
       try { await document.fonts.ready; } catch {}
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, 400));
     });
 
     if (opts.waitForSelector) {
