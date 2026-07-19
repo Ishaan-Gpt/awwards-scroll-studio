@@ -56,7 +56,7 @@ fi
 # --- Run worker ---
 if [[ -n "$NPM_PKG" ]]; then
   echo "→ Launching \${NPM_PKG} via npx..."
-  SMOOTHRECORD_APP="$APP_URL" npx --yes "$NPM_PKG" pair
+  SMOOTHRECORD_APP="$APP_URL" npx --yes --package "$NPM_PKG" smoothrecord-pair
 elif [[ -n "$TAR_URL" ]]; then
   mkdir -p "$INSTALL_DIR"; cd "$INSTALL_DIR"
   if [[ ! -f worker/package.json ]]; then

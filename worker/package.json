@@ -1,9 +1,10 @@
 {
   "name": "@ishaan_gpt/smoothrecord-worker",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "SmoothRecord recorder worker — turns any website into a premium smooth-scroll MP4.",
   "type": "module",
   "bin": {
+    "smoothrecord-worker": "src/pair.js",
     "smoothrecord": "src/pair.js",
     "smoothrecord-pair": "src/pair.js",
     "smoothrecord-server": "src/server.js"
