@@ -357,3 +357,96 @@ function McpTab() {
     </div>
   );
 }
+
+function WorkersTab() {
+  const list = useServerFn(listMyWorkers);
+  const del = useServerFn(deleteMyWorker);
+  const qc = useQueryClient();
+  const [origin, setOrigin] = useState("");
+  const [os, setOs] = useState<"mac" | "win">("mac");
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+    if (typeof navigator !== "undefined" && /Win/i.test(navigator.platform)) setOs("win");
+  }, []);
+
+  const q = useQuery({
+    queryKey: ["my-workers"],
+    queryFn: () => list(),
+    refetchInterval: 5000,
+  });
+  const delMut = useMutation({
+    mutationFn: (id: string) => del({ data: { id } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-workers"] }),
+  });
+
+  const macCmd = `curl -fsSL ${origin}/install.sh | sh`;
+  const winCmd = `iwr -useb ${origin}/install.ps1 | iex`;
+  const cmd = os === "mac" ? macCmd : winCmd;
+
+  return (
+    <div className="max-w-3xl">
+      <h1 className="font-display text-5xl mb-2">Your workers</h1>
+      <p className="text-muted-foreground mb-8">
+        Recordings run on <em className="text-foreground not-italic">your own computer</em> for privacy and unlimited render time.
+        Install a worker once, keep it running, record anything.
+      </p>
+
+      <div className="rounded-2xl border border-border bg-card p-6 mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="text-xs uppercase tracking-widest text-acid">Install in one command</div>
+          <div className="flex-1" />
+          <div className="inline-flex rounded-md border border-border p-0.5">
+            {(["mac", "win"] as const).map((o) => (
+              <button key={o} onClick={() => setOs(o)}
+                className={`px-3 py-1 text-xs rounded ${os === o ? "bg-acid text-background" : "text-muted-foreground"}`}>
+                {o === "mac" ? "macOS / Linux" : "Windows"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-secondary border border-border p-3 font-mono text-xs">
+          <code className="flex-1 break-all">{cmd}</code>
+          <button onClick={() => navigator.clipboard.writeText(cmd)} className="p-1.5 hover:bg-background rounded">
+            <Copy className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        <ol className="mt-5 space-y-2 text-sm text-muted-foreground list-decimal list-inside">
+          <li>Paste the command into {os === "mac" ? "Terminal" : "PowerShell"} and press Enter.</li>
+          <li>The installer downloads the worker + tunnel, prints a pairing link, and starts running.</li>
+          <li>Click the link, confirm "Pair this worker" — your dashboard flips to <span className="text-acid">online</span>.</li>
+          <li>Leave the terminal open while you use SmoothRecord. Ctrl-C to stop anytime.</li>
+        </ol>
+        <div className="mt-5 pt-4 border-t border-border text-xs text-muted-foreground">
+          Requires Node.js 20+. The installer will guide you to install it if missing. Signed one-click apps are coming.
+        </div>
+      </div>
+
+      <h2 className="font-display text-2xl mb-3">Paired workers</h2>
+      {q.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+      {q.data?.length === 0 && (
+        <div className="border border-dashed border-border rounded-xl p-8 text-center text-sm text-muted-foreground">
+          No workers paired yet. Run the command above to add one.
+        </div>
+      )}
+      <div className="space-y-2">
+        {q.data?.map((w) => (
+          <div key={w.id} className="flex items-center gap-4 rounded-xl border border-border bg-card p-4">
+            <div className={`w-2.5 h-2.5 rounded-full ${w.status === "online" ? "bg-acid" : "bg-destructive"}`} />
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-sm">{w.name}</div>
+              <div className="text-xs text-muted-foreground font-mono truncate">{w.worker_url}</div>
+              {w.last_error && <div className="text-xs text-destructive mt-1 truncate">{w.last_error}</div>}
+            </div>
+            <div className="text-xs text-muted-foreground hidden sm:block">
+              Last seen {new Date(w.last_seen_at).toLocaleTimeString()}
+            </div>
+            <button onClick={() => delMut.mutate(w.id)} className="p-2 rounded-md text-muted-foreground hover:text-destructive">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
