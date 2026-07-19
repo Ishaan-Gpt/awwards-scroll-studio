@@ -9,38 +9,107 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PlaygroundRouteImport } from './routes/playground'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicRecordRouteImport } from './routes/api/public/record'
+import { Route as ApiPublicRecordIdRouteImport } from './routes/api/public/record.$id'
 
+const PlaygroundRoute = PlaygroundRouteImport.update({
+  id: '/playground',
+  path: '/playground',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicRecordRoute = ApiPublicRecordRouteImport.update({
+  id: '/api/public/record',
+  path: '/api/public/record',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicRecordIdRoute = ApiPublicRecordIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiPublicRecordRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/docs': typeof DocsRoute
+  '/playground': typeof PlaygroundRoute
+  '/api/public/record': typeof ApiPublicRecordRouteWithChildren
+  '/api/public/record/$id': typeof ApiPublicRecordIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/docs': typeof DocsRoute
+  '/playground': typeof PlaygroundRoute
+  '/api/public/record': typeof ApiPublicRecordRouteWithChildren
+  '/api/public/record/$id': typeof ApiPublicRecordIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/docs': typeof DocsRoute
+  '/playground': typeof PlaygroundRoute
+  '/api/public/record': typeof ApiPublicRecordRouteWithChildren
+  '/api/public/record/$id': typeof ApiPublicRecordIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/docs'
+    | '/playground'
+    | '/api/public/record'
+    | '/api/public/record/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/docs'
+    | '/playground'
+    | '/api/public/record'
+    | '/api/public/record/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/docs'
+    | '/playground'
+    | '/api/public/record'
+    | '/api/public/record/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DocsRoute: typeof DocsRoute
+  PlaygroundRoute: typeof PlaygroundRoute
+  ApiPublicRecordRoute: typeof ApiPublicRecordRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/playground': {
+      id: '/playground'
+      path: '/playground'
+      fullPath: '/playground'
+      preLoaderRoute: typeof PlaygroundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +117,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/record': {
+      id: '/api/public/record'
+      path: '/api/public/record'
+      fullPath: '/api/public/record'
+      preLoaderRoute: typeof ApiPublicRecordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/record/$id': {
+      id: '/api/public/record/$id'
+      path: '/$id'
+      fullPath: '/api/public/record/$id'
+      preLoaderRoute: typeof ApiPublicRecordIdRouteImport
+      parentRoute: typeof ApiPublicRecordRoute
+    }
   }
 }
 
+interface ApiPublicRecordRouteChildren {
+  ApiPublicRecordIdRoute: typeof ApiPublicRecordIdRoute
+}
+
+const ApiPublicRecordRouteChildren: ApiPublicRecordRouteChildren = {
+  ApiPublicRecordIdRoute: ApiPublicRecordIdRoute,
+}
+
+const ApiPublicRecordRouteWithChildren = ApiPublicRecordRoute._addFileChildren(
+  ApiPublicRecordRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DocsRoute: DocsRoute,
+  PlaygroundRoute: PlaygroundRoute,
+  ApiPublicRecordRoute: ApiPublicRecordRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
