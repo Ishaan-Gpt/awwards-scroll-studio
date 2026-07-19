@@ -90,18 +90,26 @@ function Nav() {
 }
 
 function UrlBar({ url, setUrl }: { url: string; setUrl: (s: string) => void }) {
+  const [busy, setBusy] = useState(false);
   return (
     <form
       className="w-full"
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
         const q = url.trim();
         if (!q) return;
-        window.location.href = `/app?url=${encodeURIComponent(q)}`;
+        setBusy(true);
+        const { data } = await supabase.auth.getSession();
+        const target = `/app?url=${encodeURIComponent(q)}`;
+        if (data.session) {
+          window.location.href = target;
+        } else {
+          window.location.href = `/auth?next=${encodeURIComponent(target)}`;
+        }
       }}
     >
       <label className="block text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">
-        Paste a URL → see it record
+        Paste a URL → sign in → record on your machine
       </label>
       <div className="flex items-stretch gap-2 border border-border rounded-2xl p-2 bg-surface/60 backdrop-blur-sm focus-within:border-acid transition-colors">
         <input
@@ -113,12 +121,13 @@ function UrlBar({ url, setUrl }: { url: string; setUrl: (s: string) => void }) {
         />
         <button
           type="submit"
-          className="group inline-flex items-center gap-2 px-6 rounded-xl bg-foreground text-background font-medium hover:bg-acid transition-colors"
+          disabled={busy}
+          className="group inline-flex items-center gap-2 px-6 rounded-xl bg-foreground text-background font-medium hover:bg-acid transition-colors disabled:opacity-60"
         >
-          Record <Play className="w-4 h-4 fill-current" />
+          {busy ? "…" : <>Record <Play className="w-4 h-4 fill-current" /></>}
         </button>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground font-mono">Editorial preset · 60fps · 1440×900 · max 30s</p>
+      <p className="mt-3 text-xs text-muted-foreground font-mono">Runs on your paired worker · 60fps · unlimited length</p>
     </form>
   );
 }
