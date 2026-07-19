@@ -126,18 +126,24 @@ export type Database = {
         Row: {
           day: string
           jobs_started: number
+          max_concurrent: number
+          max_jobs_per_day: number
           seconds_rendered: number
           user_id: string
         }
         Insert: {
           day: string
           jobs_started?: number
+          max_concurrent?: number
+          max_jobs_per_day?: number
           seconds_rendered?: number
           user_id: string
         }
         Update: {
           day?: string
           jobs_started?: number
+          max_concurrent?: number
+          max_jobs_per_day?: number
           seconds_rendered?: number
           user_id?: string
         }
@@ -161,6 +167,92 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      worker_pairings: {
+        Row: {
+          claimed_at: string | null
+          code: string
+          created_at: string
+          expires_at: string
+          status: string
+          user_id: string | null
+          worker_id: string | null
+          worker_name: string
+          worker_token_ciphertext: string
+          worker_url: string | null
+        }
+        Insert: {
+          claimed_at?: string | null
+          code: string
+          created_at?: string
+          expires_at?: string
+          status?: string
+          user_id?: string | null
+          worker_id?: string | null
+          worker_name?: string
+          worker_token_ciphertext: string
+          worker_url?: string | null
+        }
+        Update: {
+          claimed_at?: string | null
+          code?: string
+          created_at?: string
+          expires_at?: string
+          status?: string
+          user_id?: string | null
+          worker_id?: string | null
+          worker_name?: string
+          worker_token_ciphertext?: string
+          worker_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_pairings_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workers: {
+        Row: {
+          created_at: string
+          id: string
+          last_error: string | null
+          last_seen_at: string
+          name: string
+          status: string
+          updated_at: string
+          user_id: string
+          worker_token_ciphertext: string
+          worker_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_seen_at?: string
+          name?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          worker_token_ciphertext: string
+          worker_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_seen_at?: string
+          name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          worker_token_ciphertext?: string
+          worker_url?: string
         }
         Relationships: []
       }
