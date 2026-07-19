@@ -51,7 +51,7 @@ setInterval(async () => {
 const app = Fastify({ logger: true, bodyLimit: 3 * 1024 * 1024 });
 
 const OptionsSchema = z.object({
-  preset: z.enum(["editorial", "cinematic", "custom"]).default("editorial"),
+  preset: z.enum(["editorial", "cinematic", "lite", "custom"]).default("editorial"),
   width: z.number().int().min(320).max(3840).default(1440),
   height: z.number().int().min(240).max(2160).default(900),
   deviceScaleFactor: z.number().min(1).max(3).default(2),
