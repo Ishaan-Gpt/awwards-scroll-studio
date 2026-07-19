@@ -11,6 +11,7 @@ import { Loader2, Play, Trash2, Copy, ExternalLink, Plus, Key, Terminal, LogOut,
 export const Route = createFileRoute("/_authenticated/app")({
   validateSearch: (s: Record<string, unknown>) => ({
     tab: typeof s.tab === "string" ? s.tab : undefined,
+    url: typeof s.url === "string" ? s.url : undefined,
   }),
   head: () => ({
     meta: [
@@ -74,7 +75,7 @@ function Dashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-10">
-        {tab === "record" && <RecordTab onDone={() => setTab("jobs")} />}
+        {tab === "record" && <RecordTab prefillUrl={search.url} onDone={() => setTab("jobs")} onNeedsWorker={() => setTab("workers")} />}
         {tab === "jobs" && <JobsTab />}
         {tab === "workers" && <WorkersTab />}
         {tab === "keys" && <KeysTab />}
@@ -84,14 +85,26 @@ function Dashboard() {
   );
 }
 
-function RecordTab({ onDone }: { onDone: () => void }) {
+function RecordTab({ prefillUrl, onDone, onNeedsWorker }: { prefillUrl?: string; onDone: () => void; onNeedsWorker: () => void }) {
   const start = useServerFn(startJob);
+  const listWorkers = useServerFn(listMyWorkers);
   const [kind, setKind] = useState<"url" | "html">("url");
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(prefillUrl ?? "");
   const [html, setHtml] = useState("<!doctype html><html><body style='font-family:system-ui;padding:4rem'><h1>hello</h1></body></html>");
   const [preset, setPreset] = useState<"editorial" | "cinematic" | "lite">("lite");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [origin, setOrigin] = useState("");
+
+  useEffect(() => { setOrigin(window.location.origin); }, []);
+
+  const workersQ = useQuery({
+    queryKey: ["my-workers"],
+    queryFn: () => listWorkers(),
+    refetchInterval: 5000,
+  });
+  const hasWorker = (workersQ.data?.length ?? 0) > 0;
+  const activeWorker = workersQ.data?.[0];
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -101,7 +114,8 @@ function RecordTab({ onDone }: { onDone: () => void }) {
       await start({ data: { input, options: { preset } } });
       onDone();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
+      const msg = e instanceof Error ? e.message : String(e);
+      setErr(msg.replace(/^no_paired_worker:\s*/, ""));
     } finally {
       setBusy(false);
     }
@@ -110,8 +124,45 @@ function RecordTab({ onDone }: { onDone: () => void }) {
   return (
     <form onSubmit={submit} className="max-w-2xl">
       <h1 className="font-display text-5xl mb-2">New recording</h1>
-      <p className="text-muted-foreground mb-8">Point us at a URL or paste raw HTML. We handle the rest.</p>
+      <p className="text-muted-foreground mb-8">Point us at a URL or paste raw HTML. Renders on your paired computer.</p>
 
+      {!workersQ.isLoading && !hasWorker && (
+        <div className="mb-8 rounded-2xl border border-acid/40 bg-acid/5 p-6">
+          <div className="text-xs uppercase tracking-[0.2em] text-acid mb-2">Step 1 — pair a worker</div>
+          <h2 className="font-display text-2xl mb-2">Your computer is the render farm</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Recordings run on your own machine — private, unlimited length, no queues. Pick one:
+          </p>
+          <div className="space-y-3">
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">A · npx (fastest)</div>
+              <code className="block font-mono text-xs bg-secondary border border-border rounded-md p-3 break-all">
+                npx @ishaan_gpt/smoothrecord-worker pair
+              </code>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">B · install script</div>
+              <code className="block font-mono text-xs bg-secondary border border-border rounded-md p-3 break-all">
+                {typeof navigator !== "undefined" && /Win/i.test(navigator.platform)
+                  ? `iwr -useb ${origin}/install.ps1 | iex`
+                  : `curl -fsSL ${origin}/install.sh | sh`}
+              </code>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            <button type="button" onClick={onNeedsWorker}
+              className="h-9 px-4 rounded-md bg-acid text-background text-sm font-medium">
+              Open Workers tab
+            </button>
+            <button type="button" onClick={() => workersQ.refetch()}
+              className="h-9 px-4 rounded-md border border-border text-sm text-muted-foreground hover:text-foreground">
+              I've paired — refresh
+            </button>
+          </div>
+        </div>
+      )}
+
+      <fieldset disabled={!hasWorker} className={hasWorker ? "" : "opacity-40 pointer-events-none"}>
       <div className="inline-flex rounded-lg border border-border p-1 mb-5">
         {(["url", "html"] as const).map((k) => (
           <button key={k} type="button" onClick={() => setKind(k)}
@@ -146,11 +197,20 @@ function RecordTab({ onDone }: { onDone: () => void }) {
 
       {err && <p className="mt-4 text-sm text-destructive">{err}</p>}
 
-      <button type="submit" disabled={busy}
-        className="mt-6 h-12 px-6 rounded-lg bg-acid text-background font-medium flex items-center gap-2 disabled:opacity-50">
-        {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-        Start recording
-      </button>
+      <div className="mt-6 flex items-center gap-3">
+        <button type="submit" disabled={busy || !hasWorker}
+          className="h-12 px-6 rounded-lg bg-acid text-background font-medium flex items-center gap-2 disabled:opacity-50">
+          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+          Start recording
+        </button>
+        {hasWorker && activeWorker && (
+          <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5 text-acid" />
+            Recording on <span className="text-foreground">{activeWorker.name}</span>
+          </span>
+        )}
+      </div>
+      </fieldset>
     </form>
   );
 }
