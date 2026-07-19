@@ -17,7 +17,7 @@ export default defineTool({
     const { data, error } = await supabaseAdmin
       .from("jobs")
       .select("id, status, mp4_url, input, created_at")
-      .eq("user_id", ctx.getUserId())
+      .eq("user_id", ctx.getUserId()!)
       .order("created_at", { ascending: false })
       .limit(limit ?? 10);
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };

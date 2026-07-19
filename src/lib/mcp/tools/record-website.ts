@@ -32,7 +32,7 @@ export default defineTool({
       const { data, error } = await supabaseAdmin
         .from("jobs")
         .insert({
-          user_id: ctx.getUserId(),
+          user_id: ctx.getUserId()!,
           worker_job_id: workerJobId,
           status: "queued",
           source: "mcp",

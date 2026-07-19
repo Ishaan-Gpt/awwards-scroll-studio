@@ -20,7 +20,7 @@ export default defineTool({
       .from("jobs")
       .select("id, status, mp4_url, poster_url, duration_sec, error, worker_job_id")
       .eq("id", jobId)
-      .eq("user_id", ctx.getUserId())
+      .eq("user_id", ctx.getUserId()!)
       .maybeSingle();
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     if (!row) return { content: [{ type: "text", text: "Job not found." }], isError: true };
