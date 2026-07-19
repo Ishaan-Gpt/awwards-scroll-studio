@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "sdk_version": "0.23.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://hzooqmwummjmsufrejbb.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "smoothrecord",
+      "version": "0.2.0",
+      "title": "SmoothRecord"
+    },
+    "tools": [
+      {
+        "name": "record_website",
+        "title": "Record website",
+        "description": "Start a smooth-scroll SmoothRecord video of a public URL or raw HTML string. Returns a jobId — poll with get_job.",
+        "annotations": {
+          "readOnlyHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "description": "Public URL to record. Provide this OR html."
+            },
+            "html": {
+              "type": "string",
+              "minLength": 20,
+              "maxLength": 1000000,
+              "description": "Raw HTML string to render and record. Provide this OR url."
+            },
+            "preset": {
+              "type": "string",
+              "enum": [
+                "editorial",
+                "cinematic",
+                "lite"
+              ],
+              "description": "Scroll pacing preset. Default: editorial."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_job",
+        "title": "Get recording job",
+        "description": "Get the current status of a SmoothRecord job. When status is `succeeded`, `mp4Url` is a downloadable MP4.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "jobId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The job ID returned by record_website."
+            }
+          },
+          "required": [
+            "jobId"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_jobs",
+        "title": "List recent recordings",
+        "description": "List the caller's most recent SmoothRecord jobs.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "description": "Max rows to return. Default 10."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
