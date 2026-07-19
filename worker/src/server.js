@@ -161,7 +161,11 @@ async function processJob(id) {
   try {
     const outDir = path.join(ROOT, id);
     await fs.mkdir(outDir, { recursive: true });
-    const result = await runJob({ id, outDir, input: job.input, options: job.options });
+    const HARD_TIMEOUT_MS = Number(process.env.JOB_HARD_TIMEOUT_MS || 3 * 60 * 1000);
+    const result = await Promise.race([
+      runJob({ id, outDir, input: job.input, options: job.options }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error(`Job exceeded ${HARD_TIMEOUT_MS}ms hard timeout`)), HARD_TIMEOUT_MS)),
+    ]);
     job.status = "succeeded";
     job.mp4 = result.mp4;
     job.poster = result.poster;
