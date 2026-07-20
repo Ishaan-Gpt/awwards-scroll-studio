@@ -104,6 +104,19 @@ docker build -t smoothrecord-worker . && docker run -p 8080:8080 \\
   hideSelectors?: string[], // kills cookie banners etc.
   darkMode?: boolean,
   format: "mp4",
+
+  // Composite pass — opt-in, off by default (raw viewport output otherwise).
+  composite?: boolean,
+  deviceFrame?: "macbook" | "safari" | "iphone" | "none", // default "macbook"
+  backdrop?: "gradient-mesh" | "dark-studio" | "cyberpunk" | "clean-white",
+  aspectRatio?: "16:9" | "9:16" | "1:1",
+
+  // Narration — free, local OS TTS (no API key, no network call). If
+  // voiceoverText is omitted, a script is auto-built from the page's
+  // title/description/headings.
+  voiceover?: boolean,
+  voiceoverVoice?: string,   // OS-installed voice name, e.g. "Microsoft Zira"
+  voiceoverText?: string,
 }`}</Code>
           </Section>
 

@@ -4,6 +4,8 @@ import fs from "node:fs/promises";
 import { spawn } from "node:child_process";
 import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
 import { prepareInput } from "./input.js";
+import { compositeVideo } from "./composite.js";
+import { generateAndMergeVoiceover } from "./voiceover.js";
 
 const FFMPEG = process.env.FFMPEG_PATH || ffmpegInstaller.path || "ffmpeg";
 
@@ -84,7 +86,13 @@ export async function runJob({ id, outDir, input, options, steps }) {
       });
       const arr = [...pts].sort((a, b) => a - b);
       const dedup = arr.filter((y, i) => i === 0 || y - arr[i - 1] > 120);
-      return { total, vh, points: dedup };
+      const title = document.title || "";
+      const desc = document.querySelector('meta[name="description"]')?.getAttribute("content") || "";
+      const headings = [...document.querySelectorAll("h1, h2")]
+        .map((h) => h.textContent?.trim())
+        .filter(Boolean)
+        .slice(0, 6);
+      return { total, vh, points: dedup, title, desc, headings };
     });
 
     // Build timeline of segments.
@@ -115,17 +123,59 @@ export async function runJob({ id, outDir, input, options, steps }) {
 
     // Transcode to MP4.
     const mp4Path = path.join(outDir, "out.mp4");
-    const posterPath = path.join(outDir, "poster.jpg");
     await transcode(webmPath, mp4Path, opts.fps);
-    await extractPoster(mp4Path, posterPath).catch(() => { });
+
+    // Optional: composite with a device frame / backdrop / aspect ratio (opt-in,
+    // off by default so existing raw-viewport output is unchanged).
+    let finalMp4 = mp4Path;
+    if (opts.composite) {
+      const compositedPath = path.join(outDir, "composited.mp4");
+      await compositeVideo({
+        inputPath: finalMp4,
+        outputPath: compositedPath,
+        deviceFrame: opts.deviceFrame,
+        backdrop: opts.backdrop,
+        aspectRatio: opts.aspectRatio,
+        fps: opts.fps,
+      });
+      finalMp4 = compositedPath;
+    }
+
+    const posterPath = path.join(outDir, "poster.jpg");
+    await extractPoster(finalMp4, posterPath).catch(() => { });
+
+    // Optional: local, zero-cost narration via the OS's own TTS engine — no API
+    // key, no network call. Falls back to an auto-generated script from the
+    // page's title/description/headings if no explicit text is supplied.
+    if (opts.voiceover) {
+      const narratedPath = path.join(outDir, "narrated.mp4");
+      const script = (opts.voiceoverText || buildNarrationScript(targets)).trim();
+      if (script) {
+        const merged = await generateAndMergeVoiceover({
+          mp4Path: finalMp4,
+          outMp4Path: narratedPath,
+          textContext: script,
+          voiceName: opts.voiceoverVoice,
+        });
+        if (merged) finalMp4 = narratedPath;
+      }
+    }
 
     const durationSec = Math.round((Date.now() - startedAt) / 1000);
-    return { mp4: mp4Path, poster: posterPath, durationSec };
+    return { mp4: finalMp4, poster: posterPath, durationSec };
   } finally {
     await browser.close().catch(() => { });
     await prep.cleanup?.().catch(() => { });
     if (webmPath) await fs.rm(webmPath, { force: true }).catch(() => { });
   }
+}
+
+function buildNarrationScript({ title, desc, headings } = {}) {
+  const parts = [];
+  if (title) parts.push(title);
+  if (desc) parts.push(desc);
+  if (headings?.length) parts.push(headings.join(". "));
+  return parts.join(". ").slice(0, 500);
 }
 
 function withPreset(o) {

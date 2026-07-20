@@ -65,6 +65,13 @@ const OptionsSchema = z.object({
   extraWaitMs: z.number().int().min(0).max(30_000).optional(),
   hideSelectors: z.array(z.string()).optional(),
   darkMode: z.boolean().optional(),
+  composite: z.boolean().optional(),
+  deviceFrame: z.enum(["macbook", "safari", "iphone", "none"]).optional(),
+  backdrop: z.enum(["gradient-mesh", "dark-studio", "cyberpunk", "clean-white"]).optional(),
+  aspectRatio: z.enum(["16:9", "9:16", "1:1"]).optional(),
+  voiceover: z.boolean().optional(),
+  voiceoverVoice: z.string().max(100).optional(),
+  voiceoverText: z.string().max(2000).optional(),
 }).partial().default({});
 
 const InputSchema = z.discriminatedUnion("type", [

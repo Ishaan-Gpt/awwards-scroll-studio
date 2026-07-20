@@ -244,8 +244,9 @@ function Features() {
     { n: "02", h: "Awwwards-tuned scroll", b: "Section-aware pacing with eased segments and intentional holds so hero reveals and pinned animations complete on camera." },
     { n: "03", h: "Real click-flows", b: "Pass a steps array — click, fill, hover, navigate — to capture logins, signups, and checkouts, not just a passive scroll of a static page." },
     { n: "04", h: "Real MP4, not a GIF", b: "H.264, yuv420p, +faststart. Drops straight into <video>, your CMS, or your prompt-library preview." },
-    { n: "05", h: "Two front doors", b: "Call it from an AI assistant over MCP or from any app via public REST. Same engine, same output." },
-    { n: "06", h: "Own your worker", b: "Recorder ships as a small Docker container. Deploy on Fly, Railway, Render, or a $5 VPS. Your Chromium, your storage." },
+    { n: "05", h: "Frames, backdrops & narration", b: "Opt-in device frame + gradient/studio backdrop compositing, plus free local voiceover — your OS's own TTS engine, no API key, no network call." },
+    { n: "06", h: "Two front doors", b: "Call it from an AI assistant over MCP or from any app via public REST. Same engine, same output." },
+    { n: "07", h: "Own your worker", b: "Recorder ships as a small Docker container. Deploy on Fly, Railway, Render, or a $5 VPS. Your Chromium, your storage." },
   ];
   return (
     <section className="px-6 md:px-12 py-24 border-t border-border/60">
