@@ -80,9 +80,17 @@ const InputSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
+const StepSchema = z.object({
+  action: z.enum(["click", "fill", "press", "hover", "waitFor", "wait", "goto", "scrollTo"]),
+  selector: z.string().max(500).optional(),
+  value: z.string().max(2000).optional(),
+  ms: z.number().int().min(0).max(30_000).optional(),
+});
+
 const Body = z.object({
   input: InputSchema,
   options: OptionsSchema,
+  steps: z.array(StepSchema).max(50).optional(),
   callbackUrl: z.string().url().optional(),
 });
 
@@ -109,6 +117,7 @@ app.post("/jobs", async (req, reply) => {
     updatedAt: Date.now(),
     input: parsed.data.input,
     options: parsed.data.options,
+    steps: parsed.data.steps || [],
     callbackUrl: parsed.data.callbackUrl || null,
   };
   jobs.set(id, job);
@@ -163,7 +172,7 @@ async function processJob(id) {
     await fs.mkdir(outDir, { recursive: true });
     const HARD_TIMEOUT_MS = Number(process.env.JOB_HARD_TIMEOUT_MS || 3 * 60 * 1000);
     const result = await Promise.race([
-      runJob({ id, outDir, input: job.input, options: job.options }),
+      runJob({ id, outDir, input: job.input, options: job.options, steps: job.steps }),
       new Promise((_, rej) => setTimeout(() => rej(new Error(`Job exceeded ${HARD_TIMEOUT_MS}ms hard timeout`)), HARD_TIMEOUT_MS)),
     ]);
     job.status = "succeeded";

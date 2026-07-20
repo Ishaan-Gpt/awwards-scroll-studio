@@ -31,9 +31,17 @@ const InputSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
+const StepSchema = z.object({
+  action: z.enum(["click", "fill", "press", "hover", "waitFor", "wait", "goto", "scrollTo"]),
+  selector: z.string().max(500).optional(),
+  value: z.string().max(2000).optional(),
+  ms: z.number().int().min(0).max(30_000).optional(),
+});
+
 const Body = z.object({
   input: InputSchema,
   options: OptionsSchema,
+  steps: z.array(StepSchema).max(50).optional(),
   callbackUrl: z.string().url().optional(),
 });
 

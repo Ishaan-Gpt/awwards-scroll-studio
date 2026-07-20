@@ -13,9 +13,10 @@ const FFMPEG = process.env.FFMPEG_PATH || ffmpegInstaller.path || "ffmpeg";
  *   outDir: string,
  *   input: any,
  *   options: any,
+ *   steps?: Array<{ action: string, selector?: string, value?: string, ms?: number }>,
  * }} args
  */
-export async function runJob({ id, outDir, input, options }) {
+export async function runJob({ id, outDir, input, options, steps }) {
   const opts = withPreset(options || {});
   const prep = await prepareInput(input, path.join(outDir, "src"));
   const targetUrl = prep.url;
@@ -47,12 +48,12 @@ export async function runJob({ id, outDir, input, options }) {
 
     // Wait for fonts + a settle beat.
     await page.evaluate(async () => {
-      try { await document.fonts.ready; } catch {}
+      try { await document.fonts.ready; } catch { }
       await new Promise((r) => setTimeout(r, 400));
     });
 
     if (opts.waitForSelector) {
-      await page.waitForSelector(opts.waitForSelector, { timeout: 15_000 }).catch(() => {});
+      await page.waitForSelector(opts.waitForSelector, { timeout: 15_000 }).catch(() => { });
     }
     if (opts.extraWaitMs) await page.waitForTimeout(opts.extraWaitMs);
 
@@ -63,6 +64,12 @@ export async function runJob({ id, outDir, input, options }) {
         ${(opts.hideSelectors || []).map((s) => `${s}{display:none!important}`).join("")}
       `,
     });
+
+    // Click-flow: replay any recorded actions (login, form fill, nav) before the
+    // auto-scroll pass, on the same page/context so it's one continuous recording.
+    if (steps && steps.length) {
+      await runSteps(page, steps);
+    }
 
     // Detect sections + headings + hero.
     const targets = await page.evaluate(() => {
@@ -110,14 +117,14 @@ export async function runJob({ id, outDir, input, options }) {
     const mp4Path = path.join(outDir, "out.mp4");
     const posterPath = path.join(outDir, "poster.jpg");
     await transcode(webmPath, mp4Path, opts.fps);
-    await extractPoster(mp4Path, posterPath).catch(() => {});
+    await extractPoster(mp4Path, posterPath).catch(() => { });
 
     const durationSec = Math.round((Date.now() - startedAt) / 1000);
     return { mp4: mp4Path, poster: posterPath, durationSec };
   } finally {
-    await browser.close().catch(() => {});
-    await prep.cleanup?.().catch(() => {});
-    if (webmPath) await fs.rm(webmPath, { force: true }).catch(() => {});
+    await browser.close().catch(() => { });
+    await prep.cleanup?.().catch(() => { });
+    if (webmPath) await fs.rm(webmPath, { force: true }).catch(() => { });
   }
 }
 
@@ -130,8 +137,8 @@ function withPreset(o) {
   const p = preset === "cinematic"
     ? { scrollSpeedPxPerSec: 500, sectionHoldMs: 1100, headingHoldMs: 700 }
     : preset === "lite"
-    ? { scrollSpeedPxPerSec: 900, sectionHoldMs: 500, headingHoldMs: 280 }
-    : { scrollSpeedPxPerSec: 800, sectionHoldMs: 700, headingHoldMs: 400 };
+      ? { scrollSpeedPxPerSec: 900, sectionHoldMs: 500, headingHoldMs: 280 }
+      : { scrollSpeedPxPerSec: 800, sectionHoldMs: 700, headingHoldMs: 400 };
   return { ...base, ...p, ...o };
 }
 
@@ -152,6 +159,56 @@ function buildTimeline({ total, vh, points }, opts) {
     segments.push({ kind: "hold", y: to, duration: isEdge ? opts.sectionHoldMs || 700 : opts.headingHoldMs || 400 });
   }
   return segments;
+}
+
+/**
+ * Replays a sequence of real interactions (click, fill, hover, navigate, scroll-to)
+ * on the live page so click-flows — logins, signups, checkouts — can be captured,
+ * not just a passive scroll of a static page.
+ * @param {import("playwright").Page} page
+ * @param {Array<{ action: string, selector?: string, value?: string, ms?: number }>} steps
+ */
+async function runSteps(page, steps) {
+  for (const step of steps) {
+    try {
+      switch (step.action) {
+        case "click":
+          await page.click(step.selector, { timeout: 10_000 });
+          break;
+        case "fill":
+          await page.fill(step.selector, step.value ?? "", { timeout: 10_000 });
+          break;
+        case "press":
+          if (step.selector) await page.locator(step.selector).press(step.value ?? "Enter");
+          else await page.keyboard.press(step.value ?? "Enter");
+          break;
+        case "hover":
+          await page.hover(step.selector, { timeout: 10_000 });
+          break;
+        case "waitFor":
+          await page.waitForSelector(step.selector, { timeout: step.ms || 10_000 });
+          break;
+        case "wait":
+          await page.waitForTimeout(step.ms ?? 500);
+          break;
+        case "goto":
+          await page.goto(step.value, { waitUntil: "load", timeout: 30_000 });
+          break;
+        case "scrollTo":
+          if (step.selector) {
+            await page.locator(step.selector).scrollIntoViewIfNeeded({ timeout: 10_000 });
+          } else if (step.value) {
+            const y = Number(step.value) || 0;
+            await page.evaluate((y) => window.scrollTo({ top: y, behavior: "smooth" }), y);
+          }
+          break;
+      }
+    } catch (err) {
+      console.warn(`[SmoothRecord] step "${step.action}" failed:`, err instanceof Error ? err.message : err);
+    }
+    // Small breathing hold so the action reads clearly on camera.
+    if (step.action !== "wait") await page.waitForTimeout(350);
+  }
 }
 
 async function runTimeline(page, timeline) {

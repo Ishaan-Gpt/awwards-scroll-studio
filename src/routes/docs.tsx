@@ -107,7 +107,38 @@ docker build -t smoothrecord-worker . && docker run -p 8080:8080 \\
 }`}</Code>
           </Section>
 
-          <Section n="05" title="MCP tools">
+          <Section n="05" title="Steps · click-flows">
+            <p>Beyond passive scrolling, pass a <code>steps</code> array to click, type, and navigate through a real flow — login, signup, checkout — before the auto-scroll pass runs. Same page, one continuous recording.</p>
+            <Code lang="bash">{`curl -X POST https://your.smoothrecord.app/api/public/record \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "input": { "type": "url", "url": "https://linear.app/signup" },
+    "steps": [
+      { "action": "fill", "selector": "input[name=email]", "value": "demo@smoothrecord.app" },
+      { "action": "click", "selector": "button[type=submit]" },
+      { "action": "waitFor", "selector": "#dashboard", "ms": 8000 }
+    ],
+    "options": { "preset": "editorial" }
+  }'`}</Code>
+            <table className="w-full text-sm my-4">
+              <thead>
+                <tr className="text-left text-muted-foreground border-b border-border">
+                  <th className="py-2 pr-4">action</th><th className="py-2 pr-4">fields</th>
+                </tr>
+              </thead>
+              <tbody className="font-mono text-xs">
+                <tr className="border-b border-border/50"><td className="py-3 pr-4 text-acid">click / hover</td><td>{`{ selector }`}</td></tr>
+                <tr className="border-b border-border/50"><td className="py-3 pr-4 text-acid">fill</td><td>{`{ selector, value }`}</td></tr>
+                <tr className="border-b border-border/50"><td className="py-3 pr-4 text-acid">press</td><td>{`{ selector?, value: key }`}</td></tr>
+                <tr className="border-b border-border/50"><td className="py-3 pr-4 text-acid">waitFor</td><td>{`{ selector, ms? }`}</td></tr>
+                <tr className="border-b border-border/50"><td className="py-3 pr-4 text-acid">wait</td><td>{`{ ms }`}</td></tr>
+                <tr className="border-b border-border/50"><td className="py-3 pr-4 text-acid">goto</td><td>{`{ value: url }`}</td></tr>
+                <tr><td className="py-3 pr-4 text-acid">scrollTo</td><td>{`{ selector? | value: y }`}</td></tr>
+              </tbody>
+            </table>
+          </Section>
+
+          <Section n="06" title="MCP tools">
             <p>Add SmoothRecord to any MCP-capable client:</p>
             <Code lang="json">{`{
   "mcpServers": {
