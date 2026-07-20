@@ -137,6 +137,8 @@ export async function runJob({ id, outDir, input, options, steps }) {
         backdrop: opts.backdrop,
         aspectRatio: opts.aspectRatio,
         fps: opts.fps,
+        width: opts.width,
+        height: opts.height,
       });
       finalMp4 = compositedPath;
     }
